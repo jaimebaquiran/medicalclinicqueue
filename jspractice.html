@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Clinic Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .simulation-area {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            margin: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .room {
+            position: absolute;
+            border: 2px solid #495057;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: #495057;
+        }
+        
+        .entrance { background: #e3f2fd; left: 20px; top: 20px; width: 120px; height: 80px; }
+        .reception { background: #fff3e0; left: 160px; top: 20px; width: 140px; height: 80px; }
+        .waiting { background: #f3e5f5; left: 320px; top: 20px; width: 200px; height: 160px; }
+        .nurse-room { background: #e8f5e8; left: 540px; top: 20px; width: 120px; height: 80px; }
+        .doctor1 { background: #fff8e1; left: 20px; top: 220px; width: 100px; height: 80px; }
+        .doctor2 { background: #fff8e1; left: 140px; top: 220px; width: 100px; height: 80px; }
+        .doctor3 { background: #fff8e1; left: 260px; top: 220px; width: 100px; height: 80px; }
+        .doctor4 { background: #fff8e1; left: 380px; top: 220px; width: 100px; height: 80px; }
+        .doctor5 { background: #fff8e1; left: 500px; top: 220px; width: 100px; height: 80px; }
+        
+        .person {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transition: all 0.5s ease;
+            z-index: 10;
+        }
+        
+        .patient { background: #3498db; }
+        .doctor { background: #e74c3c; width: 10px; height: 10px; }
+        .nurse { background: #2ecc71; width: 9px; height: 9px; }
+        .receptionist { background: #f39c12; width: 9px; height: 9px; }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .control-group {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .control-group h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        
+        .control-item {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .control-item label {
+            font-weight: 500;
+            color: #495057;
+            flex: 1;
+        }
+        
+        .control-item input, .control-item select {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .simulation-controls {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .time-display {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Medical Clinic Patient Flow Simulation</h1>
+            <p>Interactive simulation to optimize clinic efficiency and patient experience</p>
+        </div>
+        
+        <div class="simulation-area" id="simulation">
+            <div class="time-display" id="timeDisplay">08:00 AM</div>
+            
+            <!-- Rooms -->
+            <div class="room entrance">Entrance</div>
+            <div class="room reception">Reception</div>
+            <div class="room waiting">Waiting Area</div>
+            <div class="room nurse-room">Nurse Room</div>
+            <div class="room doctor1">Doctor 1</div>
+            <div class="room doctor2">Doctor 2</div>
+            <div class="room doctor3">Doctor 3</div>
+            <div class="room doctor4">Doctor 4</div>
+            <div class="room doctor5">Doctor 5</div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="avgWaitTime">0</div>
+                <div class="stat-label">Avg Wait Time (min)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalPatients">0</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="patientsAbandoned">0</div>
+                <div class="stat-label">Patients Abandoned</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avgClinicTime">0</div>
+                <div class="stat-label">Avg Total Time (min)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="currentWaiting">0</div>
+                <div class="stat-label">Currently Waiting</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="efficiency">0%</div>
+                <div class="stat-label">Clinic Efficiency</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>🏥 Clinic Settings</h3>
+                <div class="control-item">
+                    <label>Doctors Working:</label>
+                    <input type="range" id="doctorsWorking" min="1" max="5" value="3">
+                    <span id="doctorsWorkingValue">3</span>
+                </div>
+                <div class="control-item">
+                    <label>Reception Staff:</label>
+                    <input type="range" id="receptionWorking" min="1" max="3" value="2">
+                    <span id="receptionWorkingValue">2</span>
+                </div>
+                <div class="control-item">
+                    <label>Nurses Working:</label>
+                    <input type="range" id="nursesWorking" min="0" max="2" value="1">
+                    <span id="nursesWorkingValue">1</span>
+                </div>
+                <div class="control-item">
+                    <label>Operating Hours:</label>
+                    <input type="range" id="operatingHours" min="4" max="12" value="8">
+                    <span id="operatingHoursValue">8</span>
+                </div>
+                <div class="control-item">
+                    <label>Patient Volume/Doctor/Hour:</label>
+                    <input type="range" id="patientVolume" min="1" max="10" value="4">
+                    <span id="patientVolumeValue">4</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>👩‍⚕️ Staff Efficiency</h3>
+                <div class="control-item">
+                    <label>Doctor Efficiency:</label>
+                    <input type="range" id="doctorEfficiency" min="2" max="10" value="4">
+                    <span id="doctorEfficiencyValue">4</span>
+                </div>
+                <div class="control-item">
+                    <label>Reception Efficiency:</label>
+                    <input type="range" id="receptionEfficiency" min="1" max="10" value="5">
+                    <span id="receptionEfficiencyValue">5</span>
+                </div>
+                <div class="control-item">
+                    <label>Nurse Efficiency:</label>
+                    <input type="range" id="nurseEfficiency" min="1" max="10" value="6">
+                    <span id="nurseEfficiencyValue">6</span>
+                </div>
+                <div class="control-item">
+                    <label>Doctor Agreeability:</label>
+                    <input type="range" id="doctorAgreeability" min="1" max="10" value="5">
+                    <span id="doctorAgreeabilityValue">5</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>🧑‍🤝‍🧑 Patient Characteristics</h3>
+                <div class="control-item">
+                    <label>Waiting Tolerance (min):</label>
+                    <input type="range" id="waitingTolerance" min="5" max="45" value="25">
+                    <span id="waitingToleranceValue">25</span>
+                </div>
+                <div class="control-item">
+                    <label>Patient Goodwill:</label>
+                    <input type="range" id="patientGoodwill" min="1" max="10" value="5">
+                    <span id="patientGoodwillValue">5</span>
+                </div>
+                <div class="control-item">
+                    <label>Urgency Level:</label>
+                    <input type="range" id="urgencyLevel" min="1" max="10" value="3">
+                    <span id="urgencyLevelValue">3</span>
+                </div>
+                <div class="control-item">
+                    <label>Complexity Level:</label>
+                    <input type="range" id="complexityLevel" min="1" max="10" value="4">
+                    <span id="complexityLevelValue">4</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="simulation-controls">
+            <button class="btn" onclick="startSimulation()">▶️ Start Simulation</button>
+            <button class="btn" onclick="pauseSimulation()">⏸️ Pause</button>
+            <button class="btn" onclick="resetSimulation()">🔄 Reset</button>
+            <button class="btn" onclick="toggleSpeed()">⚡ Speed: <span id="speedDisplay">1x</span></button>
+        </div>
+    </div>
+
+    <script>
+        // Simulation state
+        let isRunning = false;
+        let isPaused = false;
+        let currentTime = 0; // minutes from start
+        let speed = 1;
+        let patients = [];
+        let staff = { doctors: [], nurses: [], receptionists: [] };
+        let patientIdCounter = 0;
+        
+        // Statistics
+        let stats = {
+            totalPatients: 0,
+            patientsAbandoned: 0,
+            totalWaitTime: 0,
+            totalClinicTime: 0,
+            completedPatients: 0
+        };
+        
+        // Patient states
+        const PATIENT_STATES = {
+            ENTERING: 'entering',
+            AT_RECEPTION: 'at_reception',
+            WAITING: 'waiting',
+            WITH_NURSE: 'with_nurse',
+            WITH_DOCTOR: 'with_doctor',
+            CHECKING_OUT: 'checking_out',
+            LEAVING: 'leaving',
+            ABANDONED: 'abandoned'
+        };
+        
+        // Initialize controls
+        function initializeControls() {
+            const controls = [
+                'doctorsWorking', 'receptionWorking', 'nursesWorking', 'operatingHours',
+                'patientVolume', 'doctorEfficiency', 'receptionEfficiency', 'nurseEfficiency',
+                'doctorAgreeability', 'waitingTolerance', 'patientGoodwill', 'urgencyLevel',
+                'complexityLevel'
+            ];
+            
+            controls.forEach(id => {
+                const slider = document.getElementById(id);
+                const display = document.getElementById(id + 'Value');
+                
+                slider.addEventListener('input', () => {
+                    display.textContent = slider.value;
+                });
+            });
+        }
+        
+        // Patient class
+        class Patient {
+            constructor() {
+                this.id = ++patientIdCounter;
+                this.state = PATIENT_STATES.ENTERING;
+                this.arrivalTime = currentTime;
+                this.waitStartTime = 0;
+                this.totalWaitTime = 0;
+                this.element = this.createElement();
+                this.position = { x: 30, y: 60 };
+                this.targetPosition = { x: 30, y: 60 };
+                
+                // Randomize patient characteristics based on user settings
+                const baseWaitingTolerance = parseInt(document.getElementById('waitingTolerance').value);
+                this.waitingTolerance = Math.max(5, baseWaitingTolerance + (Math.random() * 20 - 10));
+                
+                const baseGoodwill = parseInt(document.getElementById('patientGoodwill').value);
+                this.goodwill = Math.max(1, Math.min(10, baseGoodwill + (Math.random() * 4 - 2)));
+                
+                const baseUrgency = parseInt(document.getElementById('urgencyLevel').value);
+                this.urgency = Math.max(1, Math.min(10, baseUrgency + (Math.random() * 4 - 2)));
+                
+                const baseComplexity = parseInt(document.getElementById('complexityLevel').value);
+                this.complexity = Math.max(1, Math.min(10, baseComplexity + (Math.random() * 4 - 2)));
+                
+                // Higher urgency reduces waiting tolerance
+                this.waitingTolerance *= (11 - this.urgency) / 10;
+                // Higher goodwill increases waiting tolerance
+                this.waitingTolerance *= (this.goodwill + 5) / 10;
+                
+                this.timeWithDoctor = 0;
+                this.timeWithNurse = 0;
+                this.needsNurse = Math.random() < (0.2 + this.complexity * 0.02); // More complex cases more likely to need nurse
+                this.hasSpecificDoctorRequest = Math.random() < 0.15; // 15% have specific doctor preference
+                this.isSqueezeIn = Math.random() < 0.05; // 5% are squeeze-ins
+            }
+            
+            createElement() {
+                const el = document.createElement('div');
+                el.className = 'person patient';
+                el.style.left = '30px';
+                el.style.top = '60px';
+                document.getElementById('simulation').appendChild(el);
+                return el;
+            }
+            
+            moveTo(x, y) {
+                this.targetPosition = { x, y };
+                this.element.style.left = x + 'px';
+                this.element.style.top = y + 'px';
+            }
+            
+            update() {
+                const waitTime = currentTime - this.waitStartTime;
+                
+                // Check if patient abandons
+                if (this.state === PATIENT_STATES.WAITING && waitTime > this.waitingTolerance) {
+                    this.abandon();
+                    return;
+                }
+                
+                // State machine logic
+                switch (this.state) {
+                    case PATIENT_STATES.ENTERING:
+                        this.moveToReception();
+                        break;
+                    case PATIENT_STATES.AT_RECEPTION:
+                        this.processAtReception();
+                        break;
+                    case PATIENT_STATES.WAITING:
+                        this.checkForAvailableDoctor();
+                        break;
+                    case PATIENT_STATES.WITH_DOCTOR:
+                        this.processWithDoctor();
+                        break;
+                    case PATIENT_STATES.WITH_NURSE:
+                        this.processWithNurse();
+                        break;
+                    case PATIENT_STATES.CHECKING_OUT:
+                        this.processCheckOut();
+                        break;
+                }
+            }
+            
+            moveToReception() {
+                this.moveTo(220, 60);
+                this.state = PATIENT_STATES.AT_RECEPTION;
+                this.waitStartTime = currentTime;
+            }
+            
+            processAtReception() {
+                const baseEfficiency = parseInt(document.getElementById('receptionEfficiency').value);
+                const receptionEfficiency = Math.max(1, Math.min(10, baseEfficiency + (Math.random() * 2 - 1)));
+                const baseTime = 5 - (receptionEfficiency / 2); // 0.5 to 4.5 minutes base
+                const receptionTime = Math.max(0.5, baseTime + Math.random() * 2);
+                
+                // Reception wildcard factor based on patient urgency and waiting room status
+                const waitingRoomOccupancy = patients.filter(p => p.state === PATIENT_STATES.WAITING).length;
+                const wildcardChance = (this.urgency / 10) * (waitingRoomOccupancy / 20) * 0.1;
+                
+                if (Math.random() < wildcardChance) {
+                    // Reception issue - takes 1-20 minutes extra
+                    const extraTime = 1 + Math.random() * 19;
+                    if (currentTime - this.waitStartTime >= receptionTime + extraTime) {
+                        this.moveToWaiting();
+                    }
+                } else if (currentTime - this.waitStartTime >= receptionTime) {
+                    this.moveToWaiting();
+                }
+            }
+            
+            moveToWaiting() {
+                const waitingX = 320 + Math.random() * 180;
+                const waitingY = 30 + Math.random() * 140;
+                this.moveTo(waitingX, waitingY);
+                this.state = PATIENT_STATES.WAITING;
+                this.waitStartTime = currentTime;
+            }
+            
+            checkForAvailableDoctor() {
+                let availableDoctor = null;
+                
+                if (this.hasSpecificDoctorRequest && Math.random() < 0.7) {
+                    // Try to get preferred doctor (random selection for simplicity)
+                    const preferredDoctorIndex = Math.floor(Math.random() * staff.doctors.length);
+                    if (!staff.doctors[preferredDoctorIndex].busy) {
+                        availableDoctor = staff.doctors[preferredDoctorIndex];
+                    }
+                } else {
+                    availableDoctor = staff.doctors.find(d => !d.busy);
+                }
+                
+                if (availableDoctor) {
+                    this.assignToDoctor(availableDoctor);
+                }
+            }
+            
+            assignToDoctor(doctor) {
+                doctor.busy = true;
+                doctor.currentPatient = this;
+                this.assignedDoctor = doctor;
+                this.moveTo(doctor.position.x + 50, doctor.position.y + 40);
+                this.state = PATIENT_STATES.WITH_DOCTOR;
+                this.timeWithDoctor = currentTime;
+                this.totalWaitTime += currentTime - this.waitStartTime;
+            }
+            
+            processWithDoctor() {
+                const baseDoctorEfficiency = parseInt(document.getElementById('doctorEfficiency').value);
+                const doctorEfficiency = Math.max(2, Math.min(10, baseDoctorEfficiency + (Math.random() * 2 - 1)));
+                const baseAgreeability = parseInt(document.getElementById('doctorAgreeability').value);
+                const doctorAgreeability = Math.max(1, Math.min(10, baseAgreeability + (Math.random() * 2 - 1)));
+                
+                // Base consultation time affected by doctor efficiency and patient complexity
+                const baseConsultationTime = (60 / doctorEfficiency); // minutes per patient based on efficiency
+                const complexityMultiplier = (this.complexity / 5); // 0.2 to 2.0 multiplier
+                const agreeabilityMultiplier = (doctorAgreeability / 10) + 0.5; // 0.6 to 1.5 multiplier
+                
+                let consultationTime = baseConsultationTime * complexityMultiplier * agreeabilityMultiplier;
+                
+                // Handle squeeze-ins if doctor is agreeable
+                if (this.isSqueezeIn && doctorAgreeability > 6) {
+                    // Squeeze-in accepted, but adds extra time
+                    consultationTime += 5 + Math.random() * 10;
+                }
+                
+                // Emergency cases (high urgency) can interrupt
+                if (this.urgency > 8 && Math.random() < 0.1) {
+                    consultationTime += 15 + Math.random() * 45; // Emergency handling time
+                }
+                
+                if (currentTime - this.timeWithDoctor >= consultationTime) {
+                    this.assignedDoctor.busy = false;
+                    this.assignedDoctor.currentPatient = null;
+                    
+                    if (this.needsNurse && staff.nurses.length > 0) {
+                        this.assignToNurse();
+                    } else {
+                        this.moveToCheckOut();
+                    }
+                }
+            }
+            
+            assignToNurse() {
+                const availableNurse = staff.nurses.find(n => !n.busy);
+                if (availableNurse) {
+                    availableNurse.busy = true;
+                    this.moveTo(580, 60);
+                    this.state = PATIENT_STATES.WITH_NURSE;
+                    this.timeWithNurse = currentTime;
+                } else {
+                    this.moveToCheckOut();
+                }
+            }
+            
+            processWithNurse() {
+                const baseNurseEfficiency = parseInt(document.getElementById('nurseEfficiency').value);
+                const nurseEfficiency = Math.max(1, Math.min(10, baseNurseEfficiency + (Math.random() * 2 - 1)));
+                
+                // Nurse time based on efficiency and patient complexity
+                const baseNurseTime = 10 - nurseEfficiency; // 0 to 9 minutes base
+                const nurseTime = Math.max(2, baseNurseTime + (this.complexity * 0.5) + Math.random() * 5);
+                
+                if (currentTime - this.timeWithNurse >= nurseTime) {
+                    const nurse = staff.nurses.find(n => n.busy);
+                    if (nurse) nurse.busy = false;
+                    this.moveToCheckOut();
+                }
+            }
+            
+            moveToCheckOut() {
+                this.moveTo(220, 60);
+                this.state = PATIENT_STATES.CHECKING_OUT;
+                this.checkOutTime = currentTime;
+            }
+            
+            processCheckOut() {
+                const baseEfficiency = parseInt(document.getElementById('receptionEfficiency').value);
+                const receptionEfficiency = Math.max(1, Math.min(10, baseEfficiency + (Math.random() * 2 - 1)));
+                const baseCheckOutTime = 3 - (receptionEfficiency / 5); // 0.5 to 2.8 minutes
+                const checkOutTime = Math.max(0.5, baseCheckOutTime + Math.random() * 1);
+                
+                // Reception wildcard after seeing doctor (reduced by doctor agreeability)
+                const baseAgreeability = parseInt(document.getElementById('doctorAgreeability').value);
+                const wildcardReduction = baseAgreeability / 20; // 0.05 to 0.5 reduction
+                const wildcardChance = Math.max(0, (this.urgency / 20) - wildcardReduction);
+                
+                if (Math.random() < wildcardChance) {
+                    const extraTime = 1 + Math.random() * 10;
+                    if (currentTime - this.checkOutTime >= checkOutTime + extraTime) {
+                        this.leave();
+                    }
+                } else if (currentTime - this.checkOutTime >= checkOutTime) {
+                    this.leave();
+                }
+            }
+            
+            leave() {
+                this.moveTo(30, 60);
+                this.state = PATIENT_STATES.LEAVING;
+                stats.completedPatients++;
+                stats.totalClinicTime += currentTime - this.arrivalTime;
+                stats.totalWaitTime += this.totalWaitTime;
+                
+                setTimeout(() => {
+                    this.element.remove();
+                    const index = patients.indexOf(this);
+                    if (index > -1) patients.splice(index, 1);
+                }, 1000);
+            }
+            
+            abandon() {
+                this.state = PATIENT_STATES.ABANDONED;
+                stats.patientsAbandoned++;
+                this.moveTo(30, 60);
+                
+                setTimeout(() => {
+                    this.element.remove();
+                    const index = patients.indexOf(this);
+                    if (index > -1) patients.splice(index, 1);
+                }, 1000);
+            }
+        }
+        
+        // Staff initialization
+        function initializeStaff() {
+            staff = { doctors: [], nurses: [], receptionists: [] };
+            
+            const doctorCount = parseInt(document.getElementById('doctorsWorking').value);
+            const nurseCount = parseInt(document.getElementById('nursesWorking').value);
+            const receptionCount = parseInt(document.getElementById('receptionWorking').value);
+            
+            // Initialize doctors
+            for (let i = 0; i < doctorCount; i++) {
+                const doctor = {
+                    id: i,
+                    busy: false,
+                    currentPatient: null,
+                    position: { x: 20 + (i * 120), y: 220 },
+                    element: createStaffElement('doctor', 70 + (i * 120), 260)
+                };
+                staff.doctors.push(doctor);
+            }
+            
+            // Initialize nurses
+            for (let i = 0; i < nurseCount; i++) {
+                const nurse = {
+                    id: i,
+                    busy: false,
+                    element: createStaffElement('nurse', 580, 60)
+                };
+                staff.nurses.push(nurse);
+            }
+            
+            // Initialize receptionists
+            for (let i = 0; i < receptionCount; i++) {
+                const receptionist = {
+                    id: i,
+                    busy: false,
+                    element: createStaffElement('receptionist', 200 + (i * 20), 60)
+                };
+                staff.receptionists.push(receptionist);
+            }
+        }
+        
+        function createStaffElement(type, x, y) {
+            const el = document.createElement('div');
+            el.className = `person ${type}`;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.getElementById('simulation').appendChild(el);
+            return el;
+        }
+        
+        // Patient generation
+        function generatePatients() {
+            const volume = parseInt(document.getElementById('patientVolume').value);
+            const doctorCount = parseInt(document.getElementById('doctorsWorking').value);
+            const totalHourlyVolume = volume * doctorCount;
+            
+            // Peak hours logic (simplified)
+            let peakMultiplier = 1;
+            const hour = Math.floor(currentTime / 60) + 8; // Starting at 8 AM
+            if (hour < 10 || hour > 16 || (hour >= 12 && hour <= 13)) {
+                peakMultiplier = 1.5;
+            }
+            
+            const arrivalRate = (totalHourlyVolume * peakMultiplier) / 60; // per minute
+            
+            if (Math.random() < arrivalRate) {
+                const patient = new Patient();
+                patients.push(patient);
+                stats.totalPatients++;
+            }
+        }
+        
+        // Update simulation
+        function updateSimulation() {
+            if (!isRunning || isPaused) return;
+            
+            currentTime++;
+            
+            // Generate new patients
+            generatePatients();
+            
+            // Update existing patients
+            patients.forEach(patient => patient.update());
+            
+            // Update display
+            updateDisplay();
+            
+            // Check if simulation should end
+            const operatingHours = parseInt(document.getElementById('operatingHours').value);
+            if (currentTime >= operatingHours * 60) {
+                pauseSimulation();
+            }
+        }
+        
+        // Update display
+        function updateDisplay() {
+            const startHour = 8;
+            const hours = Math.floor(currentTime / 60);
+            const minutes = currentTime % 60;
+            const displayHour = startHour + hours;
+            const ampm = displayHour >= 12 ? 'PM' : 'AM';
+            const displayHour12 = displayHour > 12 ? displayHour - 12 : displayHour;
+            
+            document.getElementById('timeDisplay').textContent = 
+                `${displayHour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+            
+            // Update stats
+            document.getElementById('totalPatients').textContent = stats.totalPatients;
+            document.getElementById('patientsAbandoned').textContent = stats.patientsAbandoned;
+            document.getElementById('currentWaiting').textContent = 
+                patients.filter(p => p.state === PATIENT_STATES.WAITING).length;
+            
+            if (stats.completedPatients > 0) {
+                document.getElementById('avgWaitTime').textContent = 
+                    Math.round(stats.totalWaitTime / stats.completedPatients);
+                document.getElementById('avgClinicTime').textContent = 
+                    Math.round(stats.totalClinicTime / stats.completedPatients);
+                
+                const efficiency = Math.max(0, 100 - (stats.patientsAbandoned / stats.totalPatients * 100));
+                document.getElementById('efficiency').textContent = Math.round(efficiency) + '%';
+            }
+        }
+        
+        // Simulation controls
+        function startSimulation() {
+            if (!isRunning) {
+                resetSimulation();
+                initializeStaff();
+                isRunning = true;
+                isPaused = false;
+                
+                window.simulationInterval = setInterval(updateSimulation, 100 / speed);
+            } else if (isPaused) {
+                isPaused = false;
+                window.simulationInterval = setInterval(updateSimulation, 100 / speed);
+            }
+        }
+        
+        function pauseSimulation() {
+            isPaused = true;
+            clearInterval(window.simulationInterval);
+        }
+        
+        function resetSimulation() {
+            isRunning = false;
+            isPaused = false;
+            currentTime = 0;
+            patientIdCounter = 0;
+            
+            clearInterval(window.simulationInterval);
+            
+            // Clear patients
+            patients.forEach(p => p.element.remove());
+            patients = [];
+            
+            // Clear staff
+            Object.values(staff).flat().forEach(s => s.element && s.element.remove());
+            staff = { doctors: [], nurses: [], receptionists: [] };
+            
+            // Reset stats
+            stats = {
+                totalPatients: 0,
+                patientsAbandoned: 0,
+                totalWaitTime: 0,
+                totalClinicTime: 0,
+                completedPatients: 0
+            };
+            
+            updateDisplay();
+        }
+        
+        function toggleSpeed() {
+            speed = speed === 1 ? 2 : speed === 2 ? 4 : 1;
+            document.getElementById('speedDisplay').textContent = speed + 'x';
+            
+            if (isRunning && !isPaused) {
+                clearInterval(window.simulationInterval);
+                window.simulationInterval = setInterval(updateSimulation, 100 / speed);
+            }
+        }
+        
+        // Initialize
+        initializeControls();
+        updateDisplay();
+    </script>
+</body>
+</html>
